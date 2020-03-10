@@ -1,0 +1,120 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>Marble Labyrinth</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+    }
+
+    main {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      right: 0;
+    }
+
+    .btnWrapper {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      text-align: center;
+    }
+
+    button {
+      margin: 20px 10px;
+      padding: 10px 20px;
+      font-size: 2rem;
+      outline: none;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      cursor: no-drop;
+    }
+  </style>
+</head>
+
+<body>
+  <main id="canvasWrapper">
+    <section id="btnWrapper" class="btnWrapper">
+      <button id="screen">Screen</button>
+      <button id="controller">Controller</button>
+    </section>
+  </main>
+  <script src="/socket.io/socket.io.js"></script>
+  <script type="module">
+    import requestSensor from './sensor.mjs';
+    import scene from './scene.mjs';
+
+    const socket = io();
+
+    const canvasWrapper = document.getElementById('canvasWrapper');
+    const screen = document.getElementById('screen');
+    const controller = document.getElementById('controller');
+
+    let roleRequest;
+    let board;
+
+    const register = (event) => {
+      roleRequest = event;
+      socket.emit('clientRegistration', event.srcElement.id);
+      screen.disabled = true;
+      controller.disabled = true;
+    };
+
+    screen.addEventListener('click', register);
+    controller.addEventListener('click', register);
+
+    socket.on('controllerAssigned', () => {
+      controller.disabled = true;
+    });
+
+    socket.on('controllerReleased', () => {
+      if (controller) {
+        controller.disabled = false;
+      }
+    });
+
+    socket.on('registration', (succeeded, msg) => {
+      if (succeeded) {
+        const btnWrapper = document.getElementById('btnWrapper');
+        btnWrapper.remove();
+        const role = roleRequest.srcElement.id;
+        switch (role) {
+          case 'screen':
+            board = new scene(canvasWrapper, socket);
+            break;
+          case 'controller':
+            requestSensor(socket);
+            break;
+          default:
+            throw new Error('Unknown role');
+        }
+      } else {
+        roleRequest.srcElement.disabled = false;
+      }
+    });
+
+    socket.on('sensorData', (data) => {
+      board.ball.accelerate(data.x, data.y);
+    });
+
+    socket.on('draw', (data) => {
+      if (!data) {
+        board.enter(0, 0);
+      } else {
+        board.enter(data.x, data.y);
+      }
+    });
+  </script>
+</body>
+
+</html>
