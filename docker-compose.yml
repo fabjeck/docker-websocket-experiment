@@ -44,7 +44,7 @@ volumes:
   certbot-etc:
   certbot-var:
   web-root:
-  dhparams:
+  dhparam:
     driver: local
     driver_opts:
       type: none
