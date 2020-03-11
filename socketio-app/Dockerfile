@@ -23,4 +23,4 @@ COPY --chown=node:node . .
 EXPOSE 3000
 
 # start the application
-CMD [ "npm", "run-script", "build" ]
+CMD [ "npm", "run", "build" ]
