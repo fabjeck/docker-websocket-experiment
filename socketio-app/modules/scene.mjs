@@ -24,7 +24,7 @@ export default class Scene {
     const left = 0;
     const right = this.canvas.width;
     const bottom = this.canvas.height;
-
+    console.log('scene', this.ball.x, this.ball.y);
     if (this.ball.y < top) {
       this.ball.y = top;
     } else if (this.ball.y > bottom) {

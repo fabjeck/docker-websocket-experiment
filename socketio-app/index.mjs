@@ -1,17 +1,12 @@
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
-import fs from 'fs';
 import express from 'express';
-import https from 'https';
+import http from 'http';
 import socketIO from 'socket.io';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
-const credentials = {
-  key: fs.readFileSync(`${process.env['HOME']}/.localhost-ssl/localhost.key`, 'utf8'),
-  cert: fs.readFileSync(`${process.env['HOME']}/.localhost-ssl/localhost.crt`, 'utf8'),
-};
-const server = https.createServer(credentials, app);
+const server = http.createServer(app);
 const io = socketIO(server);
 app.use(express.static('modules'))
 

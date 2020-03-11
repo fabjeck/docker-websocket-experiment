@@ -24,8 +24,8 @@ const requestSensor = (socket) => {
   if (permission) {
     window.addEventListener('deviceorientation', (event) => {
       const data = {
-        x: normalize(event.beta, 45, -45),
-        y: normalize(event.gamma, 45, -45)
+        x: normalize(event.beta, [-45, 45], [-1,1]),
+        y: normalize(event.gamma, [-45, 45], [1,-1])
       }
       socket.emit('sensorData', data);
     });
