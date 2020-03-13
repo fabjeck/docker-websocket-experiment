@@ -1,19 +1,21 @@
 import Ball from "./ball.mjs";
 
 export default class Scene {
-  constructor(wrapper, socket) {
+  constructor(wrapper, socket, position) {
     this.wrapper = wrapper;
     this.socket = socket;
+    this.position = position;
     this.canvas = document.createElement('canvas');
     this.context = this.canvas.getContext('2d');
     this.devicePixelRatio = window.devicePixelRatio;
-    this.ball = new Ball(this.devicePixelRatio * 30, '#f0b324');
+    this.ball = new Ball(this.devicePixelRatio * 30, 'black');
     this.isActive = false;
+
     this.init();
   }
 
   init() {
-    this.wrapper.prepend(this.canvas);
+    this.wrapper.appendChild(this.canvas);
     this.resize();
     window.addEventListener('resize', this.resize.bind(this), false);
     this.render();
@@ -24,7 +26,6 @@ export default class Scene {
     const left = 0;
     const right = this.canvas.width;
     const bottom = this.canvas.height;
-    console.log('scene', this.ball.x, this.ball.y);
     if (this.ball.y < top) {
       this.ball.y = top;
     } else if (this.ball.y > bottom) {
@@ -47,18 +48,20 @@ export default class Scene {
     }
   }
 
-  enter(xPerc, yPerc) {
+  enter(xFraction, yFraction) {
     this.isActive = true;
-    this.ball.x = xPerc * this.canvas.width;
-    this.ball.y = yPerc * this.canvas.height;
+    if (xFraction && yFraction) {
+      this.ball.x = xFraction * this.canvas.width;
+      this.ball.y = yFraction * this.canvas.height;
+    }
   }
 
   exit(dir) {
     this.isActive = false;
     const data = {
       direction: dir,
-      x: this.ball.x / this.canvas.width,
-      y: this.ball.y / this.canvas.height
+      xFraction: this.ball.x / this.canvas.width,
+      yFraction: this.ball.y / this.canvas.height
     }
     this.socket.emit('exit', data);
   }
@@ -71,5 +74,4 @@ export default class Scene {
     this.canvas.style.width = `${width}px`;
     this.canvas.style.height = `${height}px`;
   }
-
-};
+}
