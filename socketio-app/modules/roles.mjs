@@ -1,7 +1,8 @@
 export default class Roles {
   constructor () {
     this.unregisteredClients = new Map();
-    this.screens = new Set();
+    this.screens = new Array();
+    this._activeScreen = 0;
     this._controller = null;
   }
 
@@ -11,29 +12,56 @@ export default class Roles {
 
   addScreen(client) {
     this.unregisteredClients.delete(client.id);
-    this.screens.add(client);
+    this.screens.push(client);
   }
 
-  removeScreen(key) {
-    this.screens.remove(key);
+  removeScreen(client) {
+    this.screens = this.screens.filter((screen) => {
+      return client != screen;
+    });
+  }
+
+  containsScreen(client) {
+    return this.screens.includes(client);
   }
 
   hasScreens() {
-    return this.screens.size != 0;
+    return this.screens.length != 0;
   }
 
-  activeScreen() {
-    
+  nScreens() {
+    return this.screens.length;
+  }
+
+  screenIndex(client) {
+    return this.screens.indexOf(client) + 1;
+  }
+
+  activeScreen(direction) {
+    if (direction === 'left') {
+      this._activeScreen -= 1;
+    } else if (direction === 'right') {
+      this._activeScreen += 1;
+    }
   };
+
+  activeScreen(index) {
+    this._activeScreen = index;
+  }
+
+  get activeScreen() {
+    return this.screens[this._activeScreen];
+  }
 
   get controller() {
     return this._controller;
   }
 
   set controller(client) {
-    if (client) {
-      this.unregisteredClients.delete(client.id);
-    }
     this._controller = client;
+  }
+
+  hasController() {
+    return this._controller != null;
   }
 }

@@ -136,8 +136,8 @@
       socket.emit('registrationRequest', role);
     };
 
-    screen.addEventListener('click', registerClient.bind(this));
-    controller.addEventListener('click', registerClient.bind(this));
+    screen.addEventListener('click', registerClient);
+    controller.addEventListener('click', registerClient);
 
 
     /* ROLE REQUEST Failed */

@@ -39,20 +39,19 @@ io.on('connection', (socket) => {
   /* TREAT ROLE REQUEST */
 
   const evaluateGameStart = (role) => {
-    if (roles.controller && !roles.hasScreens()) {
+    if (roles.hasController() && roles.hasScreens()) {
       roles.controller.emit('setupController');
-      let index = 1;
       roles.screens.forEach((client) => {
-        client.emit('setupScreen', index, roles.screens.size);
-        index += 1;
+        client.emit('setupScreen', roles.screenIndex(client), roles.nScreens());
       });
+      gameStarted = true;
     } else {
       if (role === 'controller') {
         roles.controller.emit('wait', role);
       }
       if (role === 'screen') {
-        roles.screens.forEach((socket) => {
-          socket.emit('wait', role);
+        roles.screens.forEach((client) => {
+          client.emit('wait', role);
         });
       }
     }
@@ -66,7 +65,7 @@ io.on('connection', (socket) => {
         return socket.emit('setupController');
       }
       if (role === 'screen') {
-        return socket.emit('setupScreen', roles.screens.size, roles.screens.size);
+        return socket.emit('setupScreen', roles.screenIndex(socket), roles.nScreens());
       }
     }
   }
@@ -78,7 +77,7 @@ io.on('connection', (socket) => {
         handleEventEmit(role);
         break;
       case 'controller':
-        if (roles.controller) {
+        if (roles.hasController()) {
           return socket.emit('registrationError');
         }
         roles.controller = socket;
@@ -100,13 +99,11 @@ io.on('connection', (socket) => {
       roles.unregisteredClients.forEach((socket) => {
         socket.emit('controllerReleased');
       });
-    } else if (roles.screens.has(socket)) {
-      roles.screens.delete(socket);
+    } else if (roles.containsScreen(socket)) {
+      roles.removeScreen(socket);
       if (gameStarted) {
-        let index = 1;
         roles.screens.forEach((socket) => {
-          socket.emit('updateScreenNumbers', index, roles.screens.size)
-          index += 1;
+          socket.emit('updateScreenNumbers', roles.screenIndex(socket), roles.nScreens());
         });
       }
     }
@@ -120,15 +117,12 @@ io.on('connection', (socket) => {
     })
   });
 
-  // /* HANDLE SCREEN EXIT OF BALL */
-  // socket.on('exit', (direction, xFraction, yFraction) => {
-  //   if (direction === 'left') {
-  //     roles.activeScreen -= 1;
-  //   } else if (direction === 'right') {
-  //     roles.activeScreen += 1;
-  //   }
-  //   roles.activeScreen.emit('enter', xFraction, yFraction);
-  // });
+  /* HANDLE SCREEN EXIT OF BALL */
+
+  socket.on('exit', (direction, xFraction, yFraction) => {
+    roles.activeScreen(direction);
+    roles.activeScreen.emit('enter', xFraction, yFraction);
+  });
 
 });
 
