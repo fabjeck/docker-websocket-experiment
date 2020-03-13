@@ -207,6 +207,10 @@
       socket.on('gyroscope', (x, y) => {
         scene.ball.accelerate(x, y);
       });
+
+      socket.on('enter', (xFraction, yFraction) => {
+        scene.enter(xFraction, yFraction);
+      });
     });
   </script>
 </body>

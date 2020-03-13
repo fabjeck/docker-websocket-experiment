@@ -30,28 +30,23 @@ export default class Scene {
   checkBoundaries() {
     const top = this.ball.radius;
     const left = this.ball.radius;
-    const right = this.canvas.width + this.ball.radius;
-    const bottom = this.canvas.height + this.ball.radius;
+    const right = this.canvas.width - this.ball.radius;
+    const bottom = this.canvas.height - this.ball.radius;
     
     if (this.ball.y < top) {
       this.ball.y = top;
     } else if (this.ball.y > bottom) {
       this.ball.y = bottom;
     }
-    if (this.ball.x < left) {
-      console.log('left');
-      if (this.screenPosition === 1) {
-        this.ball.x = left;
-      } else {
-        this.exit('left', this.x / this.canvas.width, this.y / this.canvas.height);
-      }
-    } else if (this.ball.x > right) {
-      console.log('right');
-      if (this.screenPosition === this.screensCount) {
-        this.ball.x = right;
-      } else {
-        this.exit('right', this.x / this.canvas.width, this.y / this.canvas.height);
-      }
+
+    if (this.screenPosition === 1 && this.ball.x < left) {
+      this.ball.x = left;
+    } else if (this.screenPosition === this.screensCount && this.ball.x > right){
+      this.ball.x = right;
+    } else if (this.ball.x < 0) {
+      this.exit('left', this.y / this.canvas.height);
+    } else if (this.ball.x > this.canvas.width + this.ball.radius) {
+      this.exit('right', this.y / this.canvas.height);
     }
   }
 
@@ -64,22 +59,22 @@ export default class Scene {
     }
   }
 
-  enter(xFraction, yFraction) {
+  enter(direction, yFraction) {
     this.isActive = true;
-    if (xFraction && yFraction) {
-      this.ball.x = xFraction * this.canvas.width;
+    if (direction && yFraction) {
+      if (direction === 'left') {
+        this.ball.x = this.canvas.width;
+      } else if (direction === 'right'){
+        this.ball.x = 0;
+      }
       this.ball.y = yFraction * this.canvas.height;
     }
   }
 
   exit(dir) {
     this.isActive = false;
-    const data = {
-      direction: dir,
-      xFraction: this.ball.x / this.canvas.width,
-      yFraction: this.ball.y / this.canvas.height
-    }
-    this.socket.emit('exit', data);
+    const yFraction = this.ball.y / this.canvas.height;
+    this.socket.emit('exit', dir, yFraction);
   }
 
   resize() {

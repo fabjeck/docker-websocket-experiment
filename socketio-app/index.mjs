@@ -114,14 +114,14 @@ io.on('connection', (socket) => {
   socket.on('gyroscope', (x, y) => {
     roles.screens.forEach((client) => {
       client.emit('gyroscope', x, y);
-    })
+    });
   });
 
   /* HANDLE SCREEN EXIT OF BALL */
 
-  socket.on('exit', (direction, xFraction, yFraction) => {
+  socket.on('exit', (direction, yFraction) => {
     roles.activeScreen = direction;
-    roles.activeScreen.emit('enter', xFraction, yFraction);
+    roles.activeScreen.emit('enter', direction, yFraction);
   });
 
 });
