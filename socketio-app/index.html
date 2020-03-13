@@ -123,7 +123,7 @@
     import Scene from './scene.mjs';
 
     const socket = io();
-    
+
     const main = document.getElementById('main');
     const wrapper = document.getElementById('wrapper');
     const screen = document.getElementById('screen');
@@ -193,7 +193,7 @@
 
     socket.on('setupScreen', (screenPosition, screensCount) => {
       main.innerHTML = `<p class="screen-number">You are screen number <strong id="screen-number">${screenPosition}</strong></p>`;
-      
+
       const scene = new Scene(main, socket, screenPosition, screensCount);
       if (screenPosition === 1) {
         scene.enter();

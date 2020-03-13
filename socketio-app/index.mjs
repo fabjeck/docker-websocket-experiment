@@ -120,7 +120,7 @@ io.on('connection', (socket) => {
   /* HANDLE SCREEN EXIT OF BALL */
 
   socket.on('exit', (direction, xFraction, yFraction) => {
-    roles.activeScreen(direction);
+    roles.activeScreen = direction;
     roles.activeScreen.emit('enter', xFraction, yFraction);
   });
 

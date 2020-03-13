@@ -37,17 +37,13 @@ export default class Roles {
     return this.screens.indexOf(client) + 1;
   }
 
-  activeScreen(direction) {
+  set activeScreen(direction) {
     if (direction === 'left') {
       this._activeScreen -= 1;
     } else if (direction === 'right') {
       this._activeScreen += 1;
     }
   };
-
-  activeScreen(index) {
-    this._activeScreen = index;
-  }
 
   get activeScreen() {
     return this.screens[this._activeScreen];
