@@ -18,55 +18,74 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
 });
 
-let screens = new Array();
-let controller = null;
+import Roles from './modules/roles.mjs';
+
+const roles = new Roles();
 
 let gameStarted = false;
 
-
 io.on('connection', (socket) => {
+
+  /* ADD CLIENT TO DATA STRUCTURE */
+
+  roles.addClient(socket);
 
   /* DISABLE CONTROLLER IF ALREADY ASSIGNED */
 
-  if (controller) {
+  if (roles.controller) {
     socket.emit('controllerAssigned');
   }
 
   /* TREAT ROLE REQUEST */
 
-  const informClients = () => {
-    const waitingClients = screens.concat(controller);
-    if (controller && screens.length >= 1) {
-      waitingClients.forEach((client) => {
-        io.to(client).emit('start', screens.indexOf(client) + 1);
+  const evaluateGameStart = (role) => {
+    if (roles.controller && !roles.hasScreens()) {
+      roles.controller.emit('setupController');
+      let index = 1;
+      roles.screens.forEach((client) => {
+        client.emit('setupScreen', index, roles.screens.size);
+        index += 1;
       });
     } else {
-      waitingClients.forEach((client) => {
-        io.to(client).emit('wait');
-      });
+      if (role === 'controller') {
+        roles.controller.emit('wait', role);
+      }
+      if (role === 'screen') {
+        roles.screens.forEach((socket) => {
+          socket.emit('wait', role);
+        });
+      }
+    }
+  };
+
+  const handleEventEmit = (role) => {
+    if (!gameStarted) {
+      evaluateGameStart(role);
+    } else {
+      if (role === 'controller') {
+        return socket.emit('setupController');
+      }
+      if (role === 'screen') {
+        return socket.emit('setupScreen', roles.screens.size, roles.screens.size);
+      }
     }
   }
 
-  socket.on('clientRegistration', (role) => {
+  socket.on('registrationRequest', (role) => {
     switch (role) {
       case 'screen':
-        screens.push(socket.id);
-        socket.emit('registration', true, role);
-        if (!gameStarted) {
-          informClients();
-          gameStarted = true;
-        } else {
-          socket.emit('start', screens.indexOf(socket.id) + 1);
-        }
+        roles.addScreen(socket);
+        handleEventEmit(role);
         break;
       case 'controller':
-        if (controller) {
-          return socket.emit('registration', false);
+        if (roles.controller) {
+          return socket.emit('registrationError');
         }
-        controller = socket.id;
-        socket.emit('registration', true, role);
-        socket.broadcast.emit('controllerAssigned');
-        informClients();
+        roles.controller = socket;
+        roles.unregisteredClients.forEach((socket) => {
+          socket.emit('controllerAssigned');
+        });
+        handleEventEmit(role);
         break;
       default:
         throw new Error('Unknown role');
@@ -76,26 +95,40 @@ io.on('connection', (socket) => {
   /* TREAT CLIENT DISCONNECT */
 
   socket.on('disconnect', () => {
-    if (socket.id === controller) {
-      controller = null;
-      socket.broadcast.emit('controllerReleased');
-    } else if (screens.includes(socket.id)) {
-      screens = screens.filter((id) => {
-        id === socket.id;
+    if (roles.controller === socket) {
+      roles.controller = null;
+      roles.unregisteredClients.forEach((socket) => {
+        socket.emit('controllerReleased');
       });
-      screens.forEach((screen) => {
-        io.to(screen).emit('updateScreenPosition', screens.indexOf(screen) + 1);
-      });
+    } else if (roles.screens.has(socket)) {
+      roles.screens.delete(socket);
+      if (gameStarted) {
+        let index = 1;
+        roles.screens.forEach((socket) => {
+          socket.emit('updateScreenNumbers', index, roles.screens.size)
+          index += 1;
+        });
+      }
     }
   });
 
   /* FORWARD GYROSCOPE DATA TO SCREENS */
-  
+
   socket.on('gyroscope', (x, y) => {
-    screens.forEach((screen) => {
-      io.to(screen).emit('gyroscope', x, y);
+    roles.screens.forEach((client) => {
+      client.emit('gyroscope', x, y);
     })
   });
+
+  // /* HANDLE SCREEN EXIT OF BALL */
+  // socket.on('exit', (direction, xFraction, yFraction) => {
+  //   if (direction === 'left') {
+  //     roles.activeScreen -= 1;
+  //   } else if (direction === 'right') {
+  //     roles.activeScreen += 1;
+  //   }
+  //   roles.activeScreen.emit('enter', xFraction, yFraction);
+  // });
 
 });
 

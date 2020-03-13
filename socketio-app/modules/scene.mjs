@@ -1,10 +1,11 @@
 import Ball from "./ball.mjs";
 
 export default class Scene {
-  constructor(wrapper, socket, position) {
+  constructor(wrapper, socket, screenPosition, screensCount) {
     this.wrapper = wrapper;
     this.socket = socket;
-    this.position = position;
+    this.screenPosition = screenPosition;
+    this.screensCount = screensCount;
     this.canvas = document.createElement('canvas');
     this.context = this.canvas.getContext('2d');
     this.devicePixelRatio = window.devicePixelRatio;
@@ -21,6 +22,11 @@ export default class Scene {
     this.render();
   }
 
+  updateScreensOrder(screenPosition, screensCount) {
+    this.screenPosition = screenPosition;
+    this.screensCount = screensCount;
+  }
+
   checkBoundaries() {
     const top = 0;
     const left = 0;
@@ -33,9 +39,9 @@ export default class Scene {
     }
 
     if (this.ball.x < left) {
-      this.exit('left');
+      this.exit('left', this.x / this.canvas.width, this.y / this.canvas.height);
     } else if (this.ball.x > right) {
-      this.exit('right');
+      this.exit('right', this.x / this.canvas.width, this.y / this.canvas.height);
     }
   }
 

@@ -123,33 +123,27 @@
     import Scene from './scene.mjs';
 
     const socket = io();
-
-    let assignedRole = null;
-
-    /* REQUEST ROLE */
-
+    
     const main = document.getElementById('main');
     const wrapper = document.getElementById('wrapper');
     const screen = document.getElementById('screen');
     const controller = document.getElementById('controller');
 
+    /* REQUEST ROLE */
+
     const registerClient = (event) => {
       const role = event.srcElement.id;
-      socket.emit('clientRegistration', role);
+      socket.emit('registrationRequest', role);
     };
 
-    screen.addEventListener('click', registerClient);
-    controller.addEventListener('click', registerClient);
+    screen.addEventListener('click', registerClient.bind(this));
+    controller.addEventListener('click', registerClient.bind(this));
 
 
     /* ROLE REQUEST Failed */
 
-    socket.on('registration', (success, role) => {
-      if (success) {
-        assignedRole = role;
-      } else {
-        alert('Registration failed');
-      }
+    socket.on('registrationError', () => {
+      alert('Registration failed');
     });
 
     /* CONTROLLER ASSIGNED TO OTHER CLIENT */
@@ -167,14 +161,14 @@
 
     /* WAIT FOR OTHER CLIENTS TO CHOOSE ROLE */
 
-    socket.on('wait', () => {
-      const str = `<p>You are registered as <strong>${assignedRole}</strong> and waiting for other clients to join...</p>`;
+    socket.on('wait', (role) => {
+      const str = `<p>You are registered as <strong>${role}</strong> and waiting for other clients to join...</p>`;
       wrapper.innerHTML = str;
     });
 
-    /* START GAME */
+    /* SETUP CONTROLLER */
 
-    const setupController = (socket) => {
+    socket.on('setupController', () => {
       if (requestGyroscopePermission()) {
         const gyroscope = document.createElement('div');
         gyroscope.className = 'gyroscope';
@@ -189,35 +183,30 @@
           */
           const xAxisTilt = Math.round(100 * map(limitRange(event.gamma, [-45, 45]), [-45, 45], [-1, 1]));
           const zAxisTilt = Math.round(100 * map(limitRange(event.beta, [-45, 45]), [-45, 45], [-1, 1]));
-          gyroscope.style.transform = `rotate(${rotate(zAxisTilt, xAxisTilt)})`;
+          // gyroscope.style.transform = `rotate(${rotate(zAxisTilt, xAxisTilt)})`;
           socket.emit('gyroscope', zAxisTilt, xAxisTilt);
         });
       }
-    };
+    });
 
-    const setupScreen = (socket, screenPosition) => {
+    /* SETUP SCREEN */
+
+    socket.on('setupScreen', (screenPosition, screensCount) => {
       main.innerHTML = `<p class="screen-number">You are screen number <strong id="screen-number">${screenPosition}</strong></p>`;
-      const scene = new Scene(main, socket, screenPosition);
+      
+      const scene = new Scene(main, socket, screenPosition, screensCount);
       if (screenPosition === 1) {
         scene.enter();
       }
 
-      socket.on('updateScreenPosition', (position) => {
-        document.getElementById('screen-number').innerHTML = position;
-        scene.position = position;
+      socket.on('updateScreenNumbers', (screenPosition, screensCount) => {
+        document.getElementById('screen-number').innerHTML = screenPosition;
+        scene.updateScreensOrder(screenPosition, screensCount);
       });
 
       socket.on('gyroscope', (x, y) => {
         scene.ball.accelerate(x, y);
       });
-    };
-
-    socket.on('start', (screenPosition) => {
-      if (assignedRole === 'controller') {
-        setupController(socket);
-      } else if (assignedRole === 'screen') {
-        setupScreen(socket, screenPosition);
-      }
     });
   </script>
 </body>
