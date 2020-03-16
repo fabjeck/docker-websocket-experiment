@@ -7,7 +7,17 @@ const map = (val, from, to) => {
 };
 
 const rotate = (x, y) => {
-  return 0;
+  const angle = Math.atan(y / x) * (180/Math.PI);
+  switch (true) {
+    case x >= 0 && y >= 0:
+      return 90 + angle;
+    case x >= 0 && y <= 0:
+      return 90 - angle;
+    case x <= 0 && y >= 0:
+      return -90 - angle;
+    case x<= 0 && y <= 0:
+      return -90 + angle;
+  }
 };
 
-export { limitRange, map, rotate };
+export { limitRange, map, rotate }

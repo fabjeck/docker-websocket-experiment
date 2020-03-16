@@ -30,18 +30,18 @@
     section {
       width: 100%;
       height: auto;
-      margin: 100px;
+      padding: 20px;
       text-align: center;
-      max-width: 800px;
+      max-width: 350px;
     }
 
     h1 {
-      font-size: 5.5rem;
+      font-size: 2.5rem;
       font-weight: bold;
     }
 
     p {
-      font-size: 2rem;
+      font-size: 1rem;
       font-weight: 300;
     }
 
@@ -53,9 +53,9 @@
     }
 
     .btn-wrapper button {
-      padding: 25px;
+      padding: 15px;
       flex: 1;
-      font-size: 2rem;
+      font-size: 1rem;
       color: black;
       border: 1px solid black;
       background-color: white;
@@ -63,7 +63,7 @@
     }
 
     .btn-wrapper button:first-child {
-      margin-right: 20px;
+      margin-right: 10px;
     }
 
     .btn-wrapper button:hover:enabled {
@@ -78,15 +78,23 @@
     }
 
     .btn-wrapper button i {
-      margin-right: 20px;
+      margin-right: 10px;
+    }
+
+    .screen-number {
+      position: fixed;
+      top: 0;
+      right: 0;
+      margin: 20px 20px 0 0;
     }
 
     .gyroscope {
-      width: 50%;
-      max-width: 300px;
+      width: 20%;
+      max-width: 250px;
+      position: relative;
     }
 
-    .gyroscope::after {
+    .gyroscope::before {
       content: '';
       display: block;
       width: 100%;
@@ -96,12 +104,71 @@
       will-change: transform;
     }
 
-    .screen-number {
-      position: fixed;
-      top: 0;
-      right: 0;
-      margin: 20px 20px 0 0;
-      font-size: 1.5rem;
+    .gyroscope::after {
+      content: '';
+      display: block;
+      width: 100%;
+      padding-top: 20%;
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      clip-path: polygon(50% 0, 0 100%, 100% 100%);
+      background-color: white;
+    }
+
+    @media only screen and (min-width: 768px) {
+      section {
+        max-width: 500px;
+      }
+
+      h1 {
+        font-size: 3.5rem;
+      }
+
+      p {
+        font-size: 1.5rem;
+      }
+
+      .btn-wrapper button {
+        font-size: 1.5rem;
+        padding: 20px;
+      }
+
+      .btn-wrapper button:first-child {
+        margin-right: 15px;
+      }
+
+      .btn-wrapper button i {
+        margin-right: 15px;
+      }
+    }
+
+    @media only screen and (min-width: 992px) {
+      section {
+        padding: 50px;
+        max-width: 800px;
+      }
+
+      h1 {
+        font-size: 5.5rem;
+      }
+
+      p {
+        font-size: 2rem;
+      }
+
+      .btn-wrapper button {
+        font-size: 2rem;
+        padding: 25px;
+      }
+
+      .btn-wrapper button:first-child {
+        margin-right: 20px;
+      }
+
+      .btn-wrapper button i {
+        margin-right: 20px;
+      }
     }
   </style>
 </head>
@@ -175,6 +242,7 @@
       if (requestGyroscopePermission()) {
         const gyroscope = document.createElement('div');
         gyroscope.className = 'gyroscope';
+        gyroscope.id = 'gyroscope';
         main.innerHTML = '';
         main.appendChild(gyroscope);
 
@@ -184,10 +252,14 @@
           2. Map to value between -1 and 1
           3. Round to 2 decimal places
           */
+          const yAxisTilt = Math.round(100 * map(limitRange(event.beta, [-45, 45]), [-45, 45], [-1, 1])) / 100;
           const xAxisTilt = Math.round(100 * map(limitRange(event.gamma, [-45, 45]), [-45, 45], [-1, 1])) / 100;
-          const zAxisTilt = Math.round(100 * map(limitRange(event.beta, [-45, 45]), [-45, 45], [-1, 1])) / 100;
-          // gyroscope.style.transform = `rotate(${rotate(zAxisTilt, xAxisTilt)})`;
-          socket.emit('gyroscope', zAxisTilt, xAxisTilt);
+
+          console.log(rotate(yAxisTilt, xAxisTilt));
+          console.log(gyroscope);
+          gyroscope.style.transform = `rotate(${rotate(yAxisTilt, xAxisTilt)}deg)`;
+
+          socket.emit('gyroscope', yAxisTilt, xAxisTilt);
         });
       }
     });
