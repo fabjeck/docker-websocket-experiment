@@ -8,8 +8,8 @@ export default class Scene {
     this.screensCount = screensCount;
     this.canvas = document.createElement('canvas');
     this.context = this.canvas.getContext('2d');
-    this.devicePixelRatio = Math.min(window.devicePixelRatio, 2);
-    this.ball = new Ball(this.devicePixelRatio * 30, 'black');
+    this.scale = window.devicePixelRatio;
+    this.ball = new Ball(this.scale, 30, 'black', 10);
     this.isActive = false;
 
     this.init();
@@ -44,15 +44,16 @@ export default class Scene {
     } else if (this.screenPosition === this.screensCount && this.ball.x > right){
       this.ball.x = right;
     } else if (this.ball.x < 0) {
-      this.exit('left', this.y / this.canvas.height);
-    } else if (this.ball.x > this.canvas.width + this.ball.radius) {
-      this.exit('right', this.y / this.canvas.height);
+      this.exit('left');
+    } else if (this.ball.x > this.canvas.width) {
+      this.exit('right');
     }
   }
 
   render() {
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     window.requestAnimationFrame(this.render.bind(this));
+    this.ball.move();
     if (this.isActive) {
       this.checkBoundaries();
       this.ball.draw(this.context);
@@ -71,17 +72,17 @@ export default class Scene {
     }
   }
 
-  exit(dir) {
+  exit(direction) {
     this.isActive = false;
     const yFraction = this.ball.y / this.canvas.height;
-    this.socket.emit('exit', dir, yFraction);
+    this.socket.emit('exit', direction, yFraction);
   }
 
   resize() {
     const width = this.wrapper.offsetWidth;
     const height = this.wrapper.offsetHeight;
-    this.canvas.width = width * devicePixelRatio;
-    this.canvas.height = height * devicePixelRatio;
+    this.canvas.width = width * this.scale;
+    this.canvas.height = height * this.scale;
     this.canvas.style.width = `${width}px`;
     this.canvas.style.height = `${height}px`;
   }

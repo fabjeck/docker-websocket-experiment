@@ -1,14 +1,13 @@
 export default class Ball {
-  constructor(radius, color) {
-    this._radius = radius;
+  constructor(scale, radius, color, maxSpeed) {
+    this.scale = scale;
+    this._radius = this.scale * radius;
     this.color = color;
     this._x = this._radius;
     this._y = this._radius;
     this.vx = 0;
     this.vy = 0;
-    this.ax = 0;
-    this.ay = 0;
-    this.friction = 0.1;
+    this.maxSpeed = maxSpeed;
   }
 
   get radius() {
@@ -36,23 +35,25 @@ export default class Ball {
   }
 
   accelerate(ax, ay) {
-    this.ax = ax;
-    this.ay = ay;
+    this.vx = ax * this.maxSpeed * this.scale;
+    this.vy = ay * this.maxSpeed * this.scale;
   }
 
   move() {
-    this.vx += this.ax;
-    this.vy += this.ay;
-    this._x += this.vx * this.friction;
-    this._y += this.vy * this.friction;
+    this._x += this.vx;
+    this._y += this.vy;
   }
 
   draw(ctx) {
-    this.move();
+    ctx.save();
+    ctx.translate(this._x, this._y);
+
     ctx.beginPath();
-    ctx.arc(this._x, this._y, this._radius, 0, Math.PI * 2, false);
+    ctx.arc(0, 0, this._radius, 0, Math.PI * 2, false);
     ctx.fillStyle = this.color;
     ctx.fill();
     ctx.closePath();
+
+    ctx.restore();
   }
 }
