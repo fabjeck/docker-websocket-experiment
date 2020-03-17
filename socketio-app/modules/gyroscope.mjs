@@ -1,21 +1,18 @@
-const requestPermission = () => {
-  DeviceMotionEvent.requestPermission()
-    .then((permissionState) => {
-      if(permissionState === 'granted') {
-        return true;
-      }
-      return false;
-    }).catch((error) => {
-      throw new Error('Function failed');
-    });
-};
-
-export default () => {
+export default new Promise((resolve, reject) => {
   if (!window.DeviceMotionEvent) {
-    throw new Error('DeviceMotionEvent is not supported by device');
+    reject('DeviceMotionEvent is not supported by device');
+  } else if (typeof DeviceMotionEvent.requestPermission === 'function') {
+    return DeviceMotionEvent.requestPermission()
+      .then((permissionState) => {
+        if (permissionState === 'granted') {
+          resolve('Permission granted');
+        } else {
+          reject(new Error('Permission denied'));
+        }
+      }).catch((error) => {
+        reject(error);
+      });
+  } else {
+    resolve('No Permission needed');
   }
-  if (typeof DeviceMotionEvent.requestPermission === 'function') {
-    return requestPermission();
-  }
-  return true;
-};
+});
