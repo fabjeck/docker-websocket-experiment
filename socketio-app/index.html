@@ -239,7 +239,7 @@
     /* REQUEST PERMISSION FOR GYROSCOPE */
 
     socket.on('requestGyroscope', () => {
-      requestGyroscopePermission
+      requestGyroscopePermission()
         .then((res) => {
           socket.emit('gyroscopePermission');
         }).catch((error) => {
