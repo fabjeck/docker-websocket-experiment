@@ -82,15 +82,11 @@ io.on('connection', (socket) => {
         if (roles.hasController()) {
           return socket.emit('registrationError');
         }
-        socket.emit('requestGyroscope');
-
-        socket.on('gyroscopePermission', () => {
-          roles.controller = socket;
-          roles.unregisteredClients.forEach((socket) => {
-            socket.emit('controllerAssigned');
-          });
-          handleEventEmit(role);
+        roles.controller = socket;
+        roles.unregisteredClients.forEach((socket) => {
+          socket.emit('controllerAssigned');
         });
+        handleEventEmit(role);
         break;
       default:
         throw new Error('Unknown role');

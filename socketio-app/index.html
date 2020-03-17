@@ -208,7 +208,14 @@
     };
 
     screen.addEventListener('click', registerClient);
-    controller.addEventListener('click', registerClient);
+    controller.addEventListener('click', (event) => {
+      requestGyroscopePermission()
+        .then(() => {
+          registerClient(event);
+        }).catch((error) => {
+          alert(error.message);
+        });
+    });
 
     /* ROLE REQUEST Failed */
 
@@ -234,17 +241,6 @@
     socket.on('wait', (role) => {
       const str = `<p>You are registered as <strong>${role}</strong> and waiting for other clients to join...</p>`;
       wrapper.innerHTML = str;
-    });
-
-    /* REQUEST PERMISSION FOR GYROSCOPE */
-
-    socket.on('requestGyroscope', () => {
-      requestGyroscopePermission()
-        .then((res) => {
-          socket.emit('gyroscopePermission');
-        }).catch((error) => {
-          alert(error.message);
-        });
     });
 
     /* SETUP CONTROLLER */
