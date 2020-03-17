@@ -107,6 +107,10 @@ io.on('connection', (socket) => {
         });
       }
     }
+
+    if (!roles.hasController() && !roles.hasScreens()) {
+      gameStarted = false;
+    }
   });
 
   /* FORWARD GYROSCOPE DATA TO SCREENS */
