@@ -93,6 +93,7 @@
       width: 20%;
       max-width: 250px;
       position: relative;
+      will-change: transform;
     }
 
     .gyroscope::before {
@@ -101,8 +102,8 @@
       width: 100%;
       padding-top: 100%;
       clip-path: polygon(50% 0, 0 100%, 100% 100%);
+      -webkit-clip-path: polygon(50% 0, 0 100%, 100% 100%);
       background-color: black;
-      will-change: transform;
     }
 
     .gyroscope::after {
@@ -114,6 +115,7 @@
       bottom: -1px;
       left: 0;
       clip-path: polygon(50% 0, 0 100%, 100% 100%);
+      -webkit-clip-path: polygon(50% 0, 0 100%, 100% 100%);
       background-color: white;
     }
 
@@ -259,10 +261,8 @@
         3. Round to 2 decimal places
         */
         const yAxisTilt = Math.round(100 * map(limitRange(event.beta, [-45, 45]), [-45, 45], [-1, 1])) / 100;
-        const xAxisTilt = Math.round(100 * map(limitRange(event.gamma, [-45, 45]), [-45, 45], [-1, 1])) / 100;
+        const xAxisTilt = Math.round(100 * map(limitRange(event.gamma, [-45, 45]), [-45, 45], [1, -1])) / 100;
 
-        console.log(rotate(yAxisTilt, xAxisTilt));
-        console.log(gyroscope);
         gyroscope.style.transform = `rotate(${rotate(yAxisTilt, xAxisTilt)}deg)`;
 
         socket.emit('gyroscope', yAxisTilt, xAxisTilt);
