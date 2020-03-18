@@ -6,15 +6,15 @@ export default () => {
       return DeviceMotionEvent.requestPermission()
         .then((permissionState) => {
           if (permissionState === 'granted') {
-            resolve('Permission granted');
+            resolve('Permission for "DeviceMotionEvent" granted');
           } else {
-            reject(new Error('Permission denied'));
+            reject(new Error('Permission for "DeviceMotionEvent" denied'));
           }
         }).catch((error) => {
           reject(error);
         });
     } else {
-      resolve('No permission needed');
+      resolve('No permission for "DeviceMotionEvent" needed');
     }
   });
 };

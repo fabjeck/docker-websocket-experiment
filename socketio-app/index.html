@@ -210,6 +210,7 @@
     };
 
     screen.addEventListener('click', registerClient);
+
     controller.addEventListener('click', (event) => {
       requestGyroscopePermission()
         .then(() => {
@@ -241,8 +242,8 @@
     /* WAIT FOR OTHER CLIENTS TO CHOOSE ROLE */
 
     socket.on('wait', (role) => {
-      const str = `<p>You are registered as <strong>${role}</strong> and waiting for other clients to join...</p>`;
-      wrapper.innerHTML = str;
+      const htmlString = `<p>You are registered as <strong>${role}</strong> and waiting for other clients to join...</p>`;
+      wrapper.innerHTML = htmlString;
     });
 
     /* SETUP CONTROLLER */
@@ -255,17 +256,17 @@
       main.appendChild(gyroscope);
 
       window.addEventListener('deviceorientation', (event) => {
-        /*
-        1. Limit to range from - 45 to 45 degree
-        2. Map to value between -1 and 1
-        3. Round to 2 decimal places
-        */
+        // 1. Limit to range from - 45 to 45 degree
+        // 2. Map to value between -1 and 1
+        // 3. Round to 2 decimal places
         const yAxisTilt = Math.round(100 * map(limitRange(event.beta, [-45, 45]), [-45, 45], [-1, 1])) / 100;
-        const xAxisTilt = Math.round(100 * map(limitRange(event.gamma, [-45, 45]), [-45, 45], [1, -1])) / 100;
+        const xAxisTilt = Math.round(100 * map(limitRange(event.gamma, [-45, 45]), [-45, 45], [-1, 1])) / 100;
 
+        // Rotate compass arrow to resulting direction
         gyroscope.style.transform = `rotate(${rotate(yAxisTilt, xAxisTilt)}deg)`;
 
-        socket.emit('gyroscope', yAxisTilt, xAxisTilt);
+        // Tilt on y-axis gives x-values and tilt on x-axis gives y-values
+        socket.emit('gyroscopeData', yAxisTilt, xAxisTilt);
       });
     });
 
@@ -275,16 +276,17 @@
       main.innerHTML = `<p class="screen-number">You are screen number <strong id="screen-number">${screenPosition}</strong></p>`;
 
       const scene = new Scene(main, socket, screenPosition, screensCount);
+      // Trigger on game start to enter first screen
       if (screenPosition === 1) {
         scene.enter();
       }
 
-      socket.on('updateScreenNumbers', (screenPosition, screensCount) => {
+      socket.on('updateScreenOrder', (screenPosition, screensCount) => {
         document.getElementById('screen-number').innerHTML = screenPosition;
         scene.updateScreensOrder(screenPosition, screensCount);
       });
 
-      socket.on('gyroscope', (x, y) => {
+      socket.on('gyroscopeData', (x, y) => {
         scene.ball.accelerate(x, y);
       });
 

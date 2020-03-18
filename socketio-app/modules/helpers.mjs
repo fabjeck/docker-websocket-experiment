@@ -7,16 +7,21 @@ const map = (val, from, to) => {
 };
 
 const rotate = (x, y) => {
-  const angle = Math.atan(y / x) * (180/Math.PI);
+  // Consider result of division by zero
+  const angle = Math.atan(Math.abs(y) / Math.abs(x)) * (180/Math.PI) || 0;
   switch (true) {
+    case x === 0 && y >= 0:
+      return 0;
+    case x === 0 && y <= 0:
+      return 180;
     case x >= 0 && y >= 0:
-      return 90 + angle;
-    case x >= 0 && y <= 0:
       return 90 - angle;
+    case x >= 0 && y <= 0:
+      return 90 + angle;
     case x <= 0 && y >= 0:
-      return -90 - angle;
-    case x<= 0 && y <= 0:
       return -90 + angle;
+    case x <= 0 && y <= 0:
+      return -90 - angle;
   }
 };
 

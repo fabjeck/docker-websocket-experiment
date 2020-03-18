@@ -41,7 +41,8 @@ export default class Ball {
 
   move() {
     this._x += this.vx;
-    this._y += this.vy;
+    // substract to make ball sink on negative tilt 
+    this._y -= this.vy;
   }
 
   draw(ctx) {

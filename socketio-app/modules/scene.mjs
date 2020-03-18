@@ -43,9 +43,9 @@ export default class Scene {
       this.ball.x = left;
     } else if (this.screenPosition === this.screensCount && this.ball.x > right){
       this.ball.x = right;
-    } else if (this.ball.x < 0) {
+    } else if (this.ball.x < -this.ball.radius) {
       this.exit('left');
-    } else if (this.ball.x > this.canvas.width) {
+    } else if (this.ball.x > this.canvas.width + this.ball.radius) {
       this.exit('right');
     }
   }
@@ -64,9 +64,9 @@ export default class Scene {
     this.isActive = true;
     if (direction && yFraction) {
       if (direction === 'left') {
-        this.ball.x = this.canvas.width;
+        this.ball.x = this.canvas.width + this.ball.radius;
       } else if (direction === 'right'){
-        this.ball.x = 0;
+        this.ball.x = -this.ball.radius;
       }
       this.ball.y = yFraction * this.canvas.height;
     }

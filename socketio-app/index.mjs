@@ -46,48 +46,38 @@ io.on('connection', (socket) => {
       });
       gameStarted = true;
     } else {
-      if (role === 'controller') {
-        roles.controller.emit('wait', role);
-      }
-      if (role === 'screen') {
-        roles.screens.forEach((client) => {
-          client.emit('wait', role);
-        });
-      }
+      socket.emit('wait', role);
     }
   };
 
-  const handleEventEmit = (role) => {
-    if (!gameStarted) {
-      evaluateGameStart(role);
-    } else {
-      if (role === 'controller') {
-        return socket.emit('setupController');
-      }
-      if (role === 'screen') {
-        return socket.emit('setupScreen', roles.screenIndex(socket), roles.nScreens());
-      }
-    }
-  }
-
   socket.on('registrationRequest', (role) => {
     switch (role) {
-
       case 'screen':
         roles.addScreen(socket);
-        handleEventEmit(role);
+        if (gameStarted) {
+          socket.emit('setupScreen', roles.screenIndex(socket), roles.nScreens());
+          roles.screens.forEach((client) => {
+            client.emit('updateScreenOrder', roles.screenIndex(client), roles.nScreens());
+          });
+          return;
+        }
+        evaluateGameStart(role);
         break;
 
       case 'controller':
         if (roles.hasController()) {
           return socket.emit('registrationError');
         }
+        if (gameStarted) {
+          return socket.emit('setupController');
+        }
         roles.controller = socket;
-        roles.unregisteredClients.forEach((socket) => {
-          socket.emit('controllerAssigned');
+        roles.unregisteredClients.forEach((client) => {
+          client.emit('controllerAssigned');
         });
-        handleEventEmit(role);
+        evaluateGameStart(role);
         break;
+
       default:
         throw new Error('Unknown role');
     }
@@ -98,14 +88,14 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     if (roles.controller === socket) {
       roles.controller = null;
-      roles.unregisteredClients.forEach((socket) => {
-        socket.emit('controllerReleased');
+      roles.unregisteredClients.forEach((client) => {
+        client.emit('controllerReleased');
       });
     } else if (roles.containsScreen(socket)) {
       roles.removeScreen(socket);
       if (gameStarted) {
-        roles.screens.forEach((socket) => {
-          socket.emit('updateScreenNumbers', roles.screenIndex(socket), roles.nScreens());
+        roles.screens.forEach((client) => {
+          client.emit('updateScreenOrder', roles.screenIndex(client), roles.nScreens());
         });
       }
     }
@@ -117,9 +107,9 @@ io.on('connection', (socket) => {
 
   /* FORWARD GYROSCOPE DATA TO SCREENS */
 
-  socket.on('gyroscope', (x, y) => {
+  socket.on('gyroscopeData', (x, y) => {
     roles.screens.forEach((client) => {
-      client.emit('gyroscope', x, y);
+      client.emit('gyroscopeData', x, y);
     });
   });
 
