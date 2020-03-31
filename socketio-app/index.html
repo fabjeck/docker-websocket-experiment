@@ -220,7 +220,7 @@
         });
     });
 
-    /* ROLE REQUEST Failed */
+    /* ROLE REQUEST FAILED */
 
     socket.on('registrationError', () => {
       alert('Registration failed');
@@ -243,7 +243,7 @@
 
     socket.on('wait', (role) => {
       const htmlString = `<p>You are registered as <strong>${role}</strong> and waiting for other clients to join...</p>`;
-      wrapper.innerHTML = htmlString;
+        main.innerHTML = `<section id="wrapper">${htmlString}</section>`;
     });
 
     /* SETUP CONTROLLER */

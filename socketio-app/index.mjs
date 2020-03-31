@@ -26,11 +26,11 @@ let gameStarted = false;
 
 io.on('connection', (socket) => {
 
-  /* ADD CLIENT TO DATA STRUCTURE */
+  /* ADD SOCKET TO UNREGISTERED CLIENTS */
 
   roles.addClient(socket);
 
-  /* DISABLE CONTROLLER IF ALREADY ASSIGNED */
+  /* INFORM SOCKET IF CONTROLLER IS ALREADY ASSIGNED */
 
   if (roles.controller) {
     socket.emit('controllerAssigned');
@@ -39,7 +39,7 @@ io.on('connection', (socket) => {
   /* TREAT ROLE REQUEST */
 
   const evaluateGameStart = (role) => {
-    if (roles.hasController() && roles.hasScreens()) {
+    if (roles.controller && roles.hasScreens()) {
       roles.controller.emit('setupController');
       roles.screens.forEach((client) => {
         client.emit('setupScreen', roles.screenIndex(client), roles.nScreens());
@@ -53,6 +53,7 @@ io.on('connection', (socket) => {
   socket.on('registrationRequest', (role) => {
     switch (role) {
       case 'screen':
+        roles.removeClient(socket);
         roles.addScreen(socket);
         if (gameStarted) {
           socket.emit('setupScreen', roles.screenIndex(socket), roles.nScreens());
@@ -65,12 +66,10 @@ io.on('connection', (socket) => {
         break;
 
       case 'controller':
-        if (roles.hasController()) {
+        if (roles.controller) {
           return socket.emit('registrationError');
         }
-        if (gameStarted) {
-          return socket.emit('setupController');
-        }
+        roles.removeClient(socket);
         roles.controller = socket;
         roles.unregisteredClients.forEach((client) => {
           client.emit('controllerAssigned');
@@ -83,25 +82,49 @@ io.on('connection', (socket) => {
     }
   });
 
-  /* TREAT CLIENT DISCONNECT */
+  /* TREAT SOCKET DISCONNECT */
 
   socket.on('disconnect', () => {
-    if (roles.controller === socket) {
-      roles.controller = null;
-      roles.unregisteredClients.forEach((client) => {
-        client.emit('controllerReleased');
-      });
-    } else if (roles.containsScreen(socket)) {
-      roles.removeScreen(socket);
-      if (gameStarted) {
-        roles.screens.forEach((client) => {
-          client.emit('updateScreenOrder', roles.screenIndex(client), roles.nScreens());
-        });
-      }
-    }
+    switch (true) {
+      case roles.containsClient(socket):
+        roles.removeClient(socket);
+        break;
 
-    if (!roles.hasController() && !roles.hasScreens()) {
-      gameStarted = false;
+      case roles.controller === socket:
+        roles.controller = null;
+        roles.unregisteredClients.forEach((client) => {
+          client.emit('controllerReleased');
+        });
+
+        if (gameStarted) {
+          gameStarted = false;
+          roles.screens.forEach((client) => {
+            client.emit('wait', 'screen');
+          });
+        }
+        break;
+
+      case roles.containsScreen(socket):
+        const isActive = roles.activeScreen === socket;
+        roles.removeScreen(socket);
+        if (gameStarted) {
+          if (roles.hasScreens()) {
+            roles.screens.forEach((client) => {
+              client.emit('updateScreenOrder', roles.screenIndex(client), roles.nScreens());
+            });
+            if (isActive) {
+              roles.activeScreen = 'reset';
+              roles.activeScreen.emit('enter');
+            }
+          } else {
+            gameStarted = false;
+            roles.controller.emit('wait', 'controller');
+          }
+        }
+        break;
+
+        default:
+          throw new Error('Socket is not assigned to any data structure');
     }
   });
 

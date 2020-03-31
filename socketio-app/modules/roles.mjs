@@ -10,8 +10,15 @@ export default class Roles {
     this.unregisteredClients.set(client.id, client);
   };
 
-  addScreen(client) {
+  removeClient(client) {
     this.unregisteredClients.delete(client.id);
+  };
+
+  containsClient(client) {
+    return this.unregisteredClients.has(client.id);
+  }
+
+  addScreen(client) {
     this.screens.push(client);
   }
 
@@ -38,11 +45,17 @@ export default class Roles {
   }
 
  set activeScreen(direction) {
-    if (direction === 'left') {
+   switch (direction) {
+    case 'left':
       this._activeScreen -= 1;
-    } else if (direction === 'right') {
+      break;
+    case 'right':
       this._activeScreen += 1;
-    } 
+      break;
+    case 'reset':
+      this._activeScreen = 0;
+      break;
+   }
   }
 
   get activeScreen() {
@@ -55,9 +68,5 @@ export default class Roles {
 
   set controller(client) {
     this._controller = client;
-  }
-
-  hasController() {
-    return this._controller != null;
   }
 }
