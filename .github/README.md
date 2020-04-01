@@ -11,7 +11,9 @@ Connect multiple devices to the application and choose a role for each of them (
 ## Technologies ##
 
 [`Docker`](https://www.docker.com/) - Deploying containerized applications
+
 [`Express`](https://expressjs.com/) - Node web application framework
+
 [`Socket.IO`](https://socket.io/) - WebSocket library
 
 ## Architecture ##

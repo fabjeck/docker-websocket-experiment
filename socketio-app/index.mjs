@@ -42,7 +42,7 @@ io.on('connection', (socket) => {
     if (roles.controller && roles.hasScreens()) {
       roles.controller.emit('setupController');
       roles.screens.forEach((client) => {
-        client.emit('setupScreen', roles.screenIndex(client), roles.nScreens());
+        client.emit('setupScreen', roles.screenIndex(client) + 1, roles.nScreens());
       });
       gameStarted = true;
     } else {
@@ -56,9 +56,9 @@ io.on('connection', (socket) => {
         roles.removeClient(socket);
         roles.addScreen(socket);
         if (gameStarted) {
-          socket.emit('setupScreen', roles.screenIndex(socket), roles.nScreens());
+          socket.emit('setupScreen', roles.screenIndex(socket) + 1, roles.nScreens());
           roles.screens.forEach((client) => {
-            client.emit('updateScreenOrder', roles.screenIndex(client), roles.nScreens());
+            client.emit('updateScreenOrder', roles.screenIndex(client) + 1, roles.nScreens());
           });
           return;
         }
@@ -110,11 +110,11 @@ io.on('connection', (socket) => {
         if (gameStarted) {
           if (roles.hasScreens()) {
             roles.screens.forEach((client) => {
-              client.emit('updateScreenOrder', roles.screenIndex(client), roles.nScreens());
+              client.emit('updateScreenOrder', roles.screenIndex(client) + 1, roles.nScreens());
             });
             if (isActive) {
-              roles.activeScreen = 'reset';
-              roles.activeScreen.emit('enter');
+              roles.setActiveScreen('reset');
+              roles.activeScreen.emit('enter', 'reset');
             }
           } else {
             gameStarted = false;
@@ -138,8 +138,8 @@ io.on('connection', (socket) => {
 
   /* HANDLE SCREEN EXIT OF BALL */
 
-  socket.on('exit', (direction, yFraction) => {
-    roles.activeScreen = direction;
+  socket.on('exit', (direction, yFraction, screenIndex) => {
+    roles.setActiveScreen(direction, screenIndex);
     roles.activeScreen.emit('enter', direction, yFraction);
   });
 

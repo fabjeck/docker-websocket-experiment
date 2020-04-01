@@ -62,20 +62,27 @@ export default class Scene {
 
   enter(direction, yFraction) {
     this.isActive = true;
-    if (direction && yFraction) {
-      if (direction === 'left') {
-        this.ball.x = this.canvas.width + this.ball.radius;
-      } else if (direction === 'right'){
-        this.ball.x = -this.ball.radius;
+    if (direction) {
+      switch (direction) {
+        case 'left':
+          this.ball.x = this.canvas.width + this.ball.radius;
+          this.ball.y = yFraction * this.canvas.height;
+          break;
+        case 'right':
+          this.ball.x = -this.ball.radius;
+          this.ball.y = yFraction * this.canvas.height;
+          break;
+        case 'reset': 
+          this.ball = new Ball(this.scale, 30, 'black', 10);
+          break;
       }
-      this.ball.y = yFraction * this.canvas.height;
     }
   }
 
   exit(direction) {
     this.isActive = false;
     const yFraction = this.ball.y / this.canvas.height;
-    this.socket.emit('exit', direction, yFraction);
+    this.socket.emit('exit', direction, yFraction, this.screenPosition - 1);
   }
 
   resize() {

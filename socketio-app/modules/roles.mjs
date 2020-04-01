@@ -41,16 +41,16 @@ export default class Roles {
   }
 
   screenIndex(client) {
-    return this.screens.indexOf(client) + 1;
+    return this.screens.indexOf(client);
   }
 
- set activeScreen(direction) {
+ setActiveScreen(direction, screenIndex) {
    switch (direction) {
     case 'left':
-      this._activeScreen -= 1;
+      this._activeScreen = screenIndex - 1;
       break;
     case 'right':
-      this._activeScreen += 1;
+      this._activeScreen = screenIndex + 1;
       break;
     case 'reset':
       this._activeScreen = 0;
