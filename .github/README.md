@@ -1,6 +1,8 @@
-# docker-websocket-experiment #
+# Multiscreen Ball Game #
 
-This project was implemented as part of the study module __Studio Web & Mobile Design 2__.
+HSLU Digital Ideation - FS2020
+
+**Studio Web & Mobile Design & Engineering 2**
 
 ## Usage ##
 
